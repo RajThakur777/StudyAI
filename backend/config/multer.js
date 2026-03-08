@@ -1,43 +1,64 @@
-import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 
+// Fix for __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const uploadDir = path.join(__dirname, '../uploads/documents');
+// Upload directory
+const uploadDir = path.join(__dirname, "../uploads/documents");
 
+// Create directory if it doesn't exist
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure storage
+// Supported MIME types
+const allowedMimeTypes = [
+  "application/pdf", // PDF
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PPTX
+  "text/plain" // TXT
+];
+
+// Storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
+
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `${uniqueSuffix}-${file.originalname}`);
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    const safeName = file.originalname.replace(/\s+/g, "_");
+
+    cb(null, `${uniqueSuffix}-${safeName}`);
   }
 });
 
-// File filter – only PDFs
+// File validation
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/pdf') {
+  if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only PDF files are allowed!'), false);
+    cb(
+      new Error(
+        "Unsupported file type. Only PDF, DOCX, PPTX, and TXT are allowed."
+      ),
+      false
+    );
   }
 };
 
-// Configure multer
+// Multer configuration
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage,
+  fileFilter,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760 // 10MB default
+  fileSize: parseInt(process.env.MAX_FILE_SIZE) || 50 * 1024 * 1024
   }
 });
 

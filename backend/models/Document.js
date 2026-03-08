@@ -25,21 +25,25 @@ const documentSchema = new mongoose.Schema(
       default: "",
     },
     chunks: [
-      {
-        content: {
-          type: String,
-          required: true,
-        },
-        pageNumber: {
-          type: Number,
-          default: 0,
-        },
-        chunkIndex: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
+ {
+  content:{
+   type:String,
+   required:true
+  },
+  pageNumber:{
+   type:Number,
+   default:0
+  },
+  chunkIndex:{
+   type:Number,
+   required:true
+  },
+  embedding:{
+   type:[Number],
+   default:[]
+  }
+ }
+],
     uploadDate: {
       type: Date,
       default: Date.now,
